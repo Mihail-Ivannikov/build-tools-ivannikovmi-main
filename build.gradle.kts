@@ -49,10 +49,6 @@ tasks.register<Exec>("compileUi") {
 	dependsOn("npmInstall")
 }
 
-tasks.register<Exec>("createCssFolder"){
-	workingDir("")
-}
-
 tasks.register<Copy>("copyUi"){
 	copy{
 		from("ui/dist/index.html")
