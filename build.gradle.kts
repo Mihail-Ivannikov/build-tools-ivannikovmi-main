@@ -1,0 +1,73 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+plugins {
+  	id("org.springframework.boot") version "3.1.0"
+  	id("io.spring.dependency-management") version "1.1.0"
+  	kotlin("jvm") version "1.8.21"
+  	kotlin("plugin.spring") version "1.8.21"
+	kotlin("plugin.serialization") version "1.8.21"
+	id("com.dorongold.task-tree") version "4.0.0"
+}
+
+group = "academy.softserve"
+version = "0.0.1-SNAPSHOT"
+java {
+	sourceCompatibility = JavaVersion.VERSION_17
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation("org.springframework.boot:spring-boot-starter-webflux")
+	implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
+	implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
+	implementation("org.jetbrains.kotlin:kotlin-reflect")
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
+
+}
+
+tasks.withType<KotlinCompile> {
+	kotlinOptions {
+		freeCompilerArgs += "-Xjsr305=strict"
+		jvmTarget = "17"
+	}
+}
+
+
+tasks.register<Exec>("npmInstall"){
+		
+		workingDir("ui")
+		commandLine("npm", "i")
+
+}
+
+tasks.register<Exec>("compileUi") {
+	workingDir("ui")
+	commandLine("npm", "run", "build")
+	dependsOn("npmInstall")
+}
+
+tasks.register<Exec>("createCssFolder"){
+	workingDir("")
+}
+
+tasks.register<Copy>("copyUi"){
+	copy{
+		from("ui/dist/index.html")
+		from("ui/dist/app.js")
+		into("src/main/resources")
+
+	}
+	copy{
+		from("./ui/dist")
+		into("src/main/resources")
+		include("css/**")
+	}
+
+
+	dependsOn("compileUi")
+}
+
+tasks.withType<org.springframework.boot.gradle.tasks.run.BootRun>().configureEach { dependsOn("copyUi") }
